@@ -1,0 +1,33 @@
+version: '3'
+
+services:
+  web:
+    build: .
+    ports:
+      - "5000:80"
+    depends_on:
+      - db
+    volumes:
+      - ./data:/app/data
+    networks:
+      - cluster
+    links:
+      - "db:db"
+
+  db:
+    image: mysql:latest
+    environment:
+      MYSQL_DATABASE: Ecamazon
+      MYSQL_USER: 'user'
+      MYSQL_PASSWORD: 'password'
+      MYSQL_ROOT_PASSWORD: 'password'
+    ports:
+      - "3309:3306"
+    networks:
+      - cluster
+    volumes:
+      - ./mysql_data:/var/lib/mysql
+
+networks:
+  cluster : 
+    driver: bridge
