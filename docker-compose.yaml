@@ -31,5 +31,5 @@ services:
       - ./mysql_data:/var/lib/mysql
 
 networks:
-  cluster : 
+  cluster:
     driver: bridge

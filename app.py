@@ -1,6 +1,7 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
 from flask_sqlalchemy import SQLAlchemy
 import requests
+
 
 app = Flask(__name__)
 # Example database configuration in app.py
@@ -30,6 +31,28 @@ with app.app_context():
     db.session.add(initial_livreur)
     db.session.commit()
 
+
+def get_all_parcels():
+    try:
+        # Fetch all parcels from the database using Flask-SQLAlchemy
+        parcels = Colis.query.all()
+        
+        # Convert the SQLAlchemy objects to a list of dictionaries
+        parcels_list = [
+            {'_id': colis._id, 'IDcolis': colis.IDcolis, 'Xadresse': colis.Xadresse, 'Yadresse': colis.Yadresse}
+            for colis in parcels
+        ]
+
+        return parcels_list
+    except Exception as e:
+        print(f"Error: {e}")
+        return []
+
+@app.route('/get_parcels', methods=['GET'])
+def get_parcels():
+    parcels = get_all_parcels()
+    return render_template('parcels.html', parcels=parcels)
+    
 @app.route('/colis', methods=['POST'])
 def recevoir_colis():
     data = request.json

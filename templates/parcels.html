@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parcel List</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 20px;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        .parcel-box {
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .parcel-box p {
+            margin: 0;
+        }
+
+        .delivery-status {
+            font-weight: bold;
+        }
+
+        .btn-delivered, .btn-not-delivered {
+            background-color: #3498db;
+            color: #fff;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+
+        .btn-not-delivered {
+            background-color: #e74c3c;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Parcel List</h1>
+
+{% for parcel in parcels %}
+    <div class="parcel-box" id="parcel_{{ parcel._id }}">
+        <p>Parcel ID: {{ parcel.IDcolis }}</p>
+        <p>Address: {{ parcel.Xadresse }}, {{ parcel.Yadresse }}</p>
+        <p class="delivery-status" id="status_{{ parcel._id }}">Delivery Status: {% if parcel.etat == 1 %} Delivered {% else %} Not Delivered {% endif %}</p>
+        <button class="btn-delivered" onclick="markDelivered({{ parcel._id }})">Mark Delivered</button>
+        <button class="btn-not-delivered" onclick="markNotDelivered({{ parcel._id }})">Mark Not Delivered</button>
+    </div>
+{% endfor %}
+
+<script>
+    function markDelivered(parcelId) {
+        updateParcelStatus(parcelId, 1);  // 1 represents delivered
+    }
+
+    function markNotDelivered(parcelId) {
+        updateParcelStatus(parcelId, 0);  // 0 represents not delivered
+    }
+
+    function updateParcelStatus(parcelId, status) {
+        // Update the front-end status directly
+        const statusElement = document.getElementById(`status_${parcelId}`);
+        statusElement.innerText = `Delivery Status: ${status === 1 ? 'Delivered' : 'Not Delivered'}`;
+
+        // Make an AJAX request to update the parcel status on the backend
+        fetch(`/colis/${parcelId}/livraison`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                etat: status
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Handle the response if needed
+            console.log(data);
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    }
+</script>
+
+</body>
+</html>
