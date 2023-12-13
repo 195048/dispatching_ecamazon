@@ -13,6 +13,8 @@ services:
       - cluster
     links:
       - "db:db"
+    restart: always
+    command: ["./wait-for-it.sh", "db:3306", "--", "python", "app.py"]
 
   db:
     image: mysql:latest
