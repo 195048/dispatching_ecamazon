@@ -51,18 +51,22 @@
 <h1>Parcel List</h1>
 
 {% for parcel in parcels %}
-    <div class="parcel-box" id="parcel_{{ parcel._id }}">
-        <p>Parcel ID: {{ parcel.IDcolis }}</p>
-        <p>Address: {{ parcel.Xadresse }}, {{ parcel.Yadresse }}</p>
-        <p class="delivery-status" id="status_{{ parcel._id }}">Delivery Status: {% if parcel.etat == 1 %} Delivered {% else %} Not Delivered {% endif %}</p>
-        <button class="btn-delivered" onclick="markDelivered({{ parcel._id }})">Mark Delivered</button>
-        <button class="btn-not-delivered" onclick="markNotDelivered({{ parcel._id }})">Mark Not Delivered</button>
-    </div>
+
+        <div class="parcel-box" id="parcel_{{ parcel._id }}">
+            <p>Parcel ID: {{ parcel.IDcolis }}</p>
+            <p>Address: {{ parcel.Xadresse }}, {{ parcel.Yadresse }}</p>
+            <p class="delivery-status" id="status_{{ parcel._id }}">Delivery Status: Not Delivered</p>
+            <button class="btn-delivered" onclick="markDelivered({{ parcel._id }})">Mark Delivered</button>
+            <button class="btn-not-delivered" onclick="markNotDelivered({{ parcel._id }})">Mark Not Delivered</button>
+        </div>
+
 {% endfor %}
 
 <script>
     function markDelivered(parcelId) {
-        updateParcelStatus(parcelId, 1);  // 1 represents delivered
+        if (confirm("Are you sure you want to mark this parcel as delivered?")) {
+            updateParcelStatus(parcelId, 1);  // 1 represents delivered
+        }
     }
 
     function markNotDelivered(parcelId) {
