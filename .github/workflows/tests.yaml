@@ -6,28 +6,20 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
-    services:
-      docker:
-        image: docker:20.10.9
-        ports:
-          - 5000:5000
-        options: --privileged
-
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
 
-    - name: Set up Docker
-      run: |
-        docker build -t my_test_image .
-        docker run -d --name my_test_container -p 5000:5000 my_test_image
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.8'  # Set this to your Python version
 
-    - name: Wait for the application to start
-      run: sleep 30
+    - name: Install dependencies
+      run: |
+        pip install -r requirements.txt
+        # If needed, install other dependencies for testing
 
     - name: Run tests
       run: |
-        docker exec my_test_container pytest
-
-    - name: Clean up
-      run: docker stop my_test_container && docker rm my_test_container
+        pytest

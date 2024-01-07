@@ -1,104 +1,68 @@
-import unittest
+import pytest
+from app import app, db, Colis, Livreur
+from flask import json
 from unittest.mock import patch, MagicMock
-from flask import Flask
-from your_app_module import app, is_mysql_available, add_colis, post_route2, post_route3, get_route
-
-class TestApp(unittest.TestCase):
-    def setUp(self):
-        # Set up a test client
-        self.app = app.test_client()
-
-    @patch("your_app_module.mysql.connector.connect")
-    def test_is_mysql_available(self, mock_connect):
-        # Mock the MySQL connection
-        mock_connect.return_value = MagicMock()
-
-        # Call the function and assert
-        result = is_mysql_available()
-        self.assertTrue(result)
-
-    @patch("your_app_module.mysql.connector.connect")
-    def test_add_colis(self, mock_connect):
-        # Mock the MySQL connection
-        mock_connect.return_value = MagicMock()
-
-        # Mock the request data
-        mock_request_data = {
-            "id": 1,
-            "adresse_x": 123,
-            "adresse_y": 456
-        }
-
-        # Mock the MySQL cursor
-        mock_cursor = mock_connect.return_value.cursor.return_value
-        mock_cursor.fetchone.return_value = (1, )  # Mock the result of the SELECT query
-
-        # Make the request to the endpoint
-        response = self.app.post('/add_colis', json=mock_request_data)
-
-        # Assert the response status code
-        self.assertEqual(response.status_code, 201)
-
-        # Add more assertions if needed
-
-    @patch("your_app_module.requests.post")
-    def test_post_route2(self, mock_post):
-        # Mock the POST request to the other microservice
-        mock_post.return_value.status_code = 200
-
-        # Mock the request data
-        mock_request_data = {
-            "colis_id": 1,
-            "etat_colis": 1
-        }
-
-        # Make the request to the endpoint
-        response = self.app.post('/postPosColisFromDevice', json=mock_request_data)
-
-        # Assert the response status code
-        self.assertEqual(response.status_code, 201)
-
-        # Add more assertions if needed
-
-    @patch("your_app_module.requests.post")
-    def test_post_route3(self, mock_post):
-        # Mock the POST request to the other microservice
-        mock_post.return_value.status_code = 200
-
-        # Mock the request data
-        mock_request_data = {
-            "camion_id": 1,
-            "camion_pos_x": 123,
-            "camion_pos_y": 456
-        }
-
-        # Make the request to the endpoint
-        response = self.app.post('/postPosCamionFromDevice', json=mock_request_data)
-
-        # Assert the response status code
-        self.assertEqual(response.status_code, 201)
-
-        # Add more assertions if needed
-
-    @patch("your_app_module.mysql.connector.connect")
-    @patch("your_app_module.mysql.connector.connect")
-    def test_get_route(self, mock_connect1, mock_connect2):
-        # Mock the MySQL connections
-        mock_connect1.return_value = MagicMock()
-        mock_connect2.return_value = MagicMock()
-
-        # Mock the MySQL cursor
-        mock_cursor = mock_connect2.return_value.cursor.return_value
-        mock_cursor.fetchall.return_value = [(1, 2, 3, 4, 0)]  # Mock the result of the SELECT query
-
-        # Make the request to the endpoint
-        response = self.app.get('/getLivraison')
-
-        # Assert the response status code
-        self.assertEqual(response.status_code, 201)
-
-        # Add more assertions if needed
 
 
-if __name__ == '__main__':
-    unittest.main()
+@pytest.fixture
+def test_app():
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://user:password@db:3306/Ecamazon'
+    app.config['TESTING'] = True
+    with app.app_context():
+        db.create_all()
+    yield app
+    with app.app_context():
+        db.drop_all()
+
+@pytest.fixture
+def test_client(test_app):
+    return test_app.test_client()
+
+
+def add_dummy_data():
+    livreur = Livreur(x=0.0, y=0.0)
+    colis = Colis(IDcolis='123', Xadresse=1.0, Yadresse=1.0, livreur_id=1)
+    db.session.add(livreur)
+    db.session.add(colis)
+    db.session.commit()
+
+
+def test_get_parcels(test_client):
+    add_dummy_data()
+    response = test_client.get('/get_parcels')
+    assert response.status_code == 200
+
+
+
+def test_recevoir_colis(test_client):
+    with patch('app.Livreur.query') as mock_query:
+        mock_query.order_by.return_value.first.return_value = Livreur(x=0.0, y=0.0, _id=1)
+        data = {'colis': [{'IDcolis': '123', 'Xadresse': 1.0, 'Yadresse': 1.0}]}
+        response = test_client.post('/colis', data=json.dumps(data), content_type='application/json')
+        assert response.status_code == 200
+        assert json.loads(response.data)['message'] == 'Colis reçus avec succès'
+
+
+def test_get_liste_colis(test_client):
+    add_dummy_data()
+    response = test_client.get('/livreurs/1/colis')
+    assert response.status_code == 200
+
+
+
+def test_update_geolocalisation(test_client):
+    add_dummy_data()
+    data = {'x': 2.0, 'y': 2.0}
+    response = test_client.post('/livreurs/1/geolocalisation', data=json.dumps(data), content_type='application/json')
+    assert response.status_code == 200
+
+
+
+def test_update_etat_livraison(test_client):
+    add_dummy_data()
+    data = {'etat': 1}
+    with patch('requests.post') as mock_post:
+        mock_post.return_value = MagicMock(status_code=200)
+        response = test_client.post('/colis/1/livraison', data=json.dumps(data), content_type='application/json')
+        assert response.status_code == 200
+

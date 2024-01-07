@@ -1,5 +1,6 @@
 from flask import Flask, request, jsonify, render_template
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import func
 import requests
 
 
@@ -57,7 +58,10 @@ def get_parcels():
 def recevoir_colis():
     data = request.json
     for colis in data['colis']:
-        new_colis = Colis(IDcolis=colis['IDcolis'], Xadresse=colis['Xadresse'], Yadresse=colis['Yadresse'])
+        livreur = Livreur.query.order_by(func.random()).first()  # Example: Select a random livreur
+
+        # Create a new parcel and associate it with the selected courier
+        new_colis = Colis(IDcolis=colis['IDcolis'], Xadresse=colis['Xadresse'], Yadresse=colis['Yadresse'], livreur_id=livreur._id)
         db.session.add(new_colis)
     
     db.session.commit()

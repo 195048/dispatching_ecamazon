@@ -55,6 +55,7 @@
         <div class="parcel-box" id="parcel_{{ parcel._id }}">
             <p>Parcel ID: {{ parcel.IDcolis }}</p>
             <p>Address: {{ parcel.Xadresse }}, {{ parcel.Yadresse }}</p>
+            <p>Livreur: {{ parcel.livreur_id }}</p>
             <p class="delivery-status" id="status_{{ parcel._id }}">Delivery Status: Not Delivered</p>
             <button class="btn-delivered" onclick="markDelivered({{ parcel._id }})">Mark Delivered</button>
             <button class="btn-not-delivered" onclick="markNotDelivered({{ parcel._id }})">Mark Not Delivered</button>
