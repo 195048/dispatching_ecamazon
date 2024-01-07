@@ -5,7 +5,6 @@ import requests
 
 
 app = Flask(__name__)
-# Example database configuration in app.py
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://user:password@db:3306/Ecamazon'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)

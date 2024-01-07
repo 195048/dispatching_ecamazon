@@ -1,5 +1,5 @@
-import pytest
 from app import app, db, Colis, Livreur
+import pytest
 from flask import json
 from unittest.mock import patch, MagicMock
 
