@@ -6,8 +6,10 @@ from unittest.mock import patch, MagicMock
 
 @pytest.fixture
 def test_app():
+    # Use an in-memory SQLite database for tests
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:'
     app.config['TESTING'] = True
+
     with app.app_context():
         db.create_all()
     yield app
