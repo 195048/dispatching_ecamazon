@@ -6,7 +6,7 @@ from unittest.mock import patch, MagicMock
 
 @pytest.fixture
 def test_app():
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://user:password@db:3306/Ecamazon'
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:'
     app.config['TESTING'] = True
     with app.app_context():
         db.create_all()
